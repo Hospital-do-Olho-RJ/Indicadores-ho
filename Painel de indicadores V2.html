@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal de Indicadores — Hospital do Olho</title>
+  <meta name="description" content="Atalho único para indicadores (Looker Studio) do Hospital do Olho." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      --bg-grad-a: #f5f7fa;
+      --bg-grad-b: #e3f2fd;
+      --brand: #1976d2;   /* azul principal */
+      --brand-2: #0d47a1; /* azul escuro */
+      --text: #1b1f28;
+      --muted: #5f6b7a;
+      --panel: #ffffff;
+      --border: rgba(0,0,0,.08);
+      --border-strong: rgba(13,71,161,.25);
+      --chip-bg: #e3f2fd;
+      --chip-stroke: #90caf9;
+      --radius-xl: 18px;
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(0,0,0,.08);
+      --shadow-soft: 0 2px 10px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-grad-a) 0%, var(--bg-grad-b) 100%);
+      color:var(--text);
+      line-height:1.6;
+      min-height:100vh;
+    }
+
+    /* ===== Header igual ao exemplo fornecido ===== */
+    header{ background: linear-gradient(135deg, #0d47a1, #1976d2) !important; color:#fff; padding:.7rem; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.15); position:relative; overflow:hidden; }
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before{ content:""; position:absolute; inset:0; pointer-events:none; background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,0) 60%); clip-path: polygon(0 0, 60% 0, 35% 100%, 0 100%); }
+    header::after{ content:""; position:absolute; inset:0; pointer-events:none; background: linear-gradient(315deg, rgba(255,255,255,.06), rgba(255,255,255,0) 60%); clip-path: polygon(100% 0, 100% 100%, 40% 100%, 65% 0); }
+    .logo{ font-size:1.4rem; margin-bottom:.25rem; position:relative }
+    header h1{ margin-bottom:.25rem; font-size:1.55rem; line-height:1.2; position:relative }
+    header p{ font-size:.9rem; opacity:.9; max-width:600px; margin:0 auto; position:relative opacity:.9; max-width:600px; margin:0 auto; position:relative }
+
+    /* ===== Layout (sem barra lateral) ===== */
+    .main{display:grid; grid-template-columns: 1fr; gap:12px; padding:18px; max-width:1200px; width:100%; margin:0 auto;}
+
+    /* Sidebar (fallback oculto) */
+    .side{ display:none }
+    .side h2{ margin:6px 6px 10px; font-size:16px; color:#1b1f28; font-weight:700 }
+    .list{ display:grid; gap:10px }
+
+    .dash-btn{
+      --focus: rgba(25,118,210,.25);
+      display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+      border:2px solid transparent; background:#ffffff; color:var(--text); border-radius:14px; padding:10px; transition:transform .06s ease, border-color .15s ease, background .15s ease; box-shadow: var(--shadow-soft);
+    }
+    .dash-btn:hover{ transform:translateY(-1px); border-color: var(--brand) }
+    .dash-btn[aria-current="page"]{ background:linear-gradient(180deg, #ffffff, #f6fbff); border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--focus) inset }
+
+    .tag{ font-size:11px; padding:4px 8px; border-radius:999px; background: var(--chip-bg); border:1px solid var(--chip-stroke); color:#0d47a1 }
+    .muted{ color: var(--muted); font-size:12px }
+    .name{ font-weight:700; letter-spacing:.2px; color:#1976d2; font-size:15.5px; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+
+    /* ===== Viewer ===== */
+    .viewer{ background:var(--panel); border:1px solid var(--border); border-radius: var(--radius-xl); min-height:65vh; box-shadow: var(--shadow); overflow: clip; display:flex; flex-direction:column }
+    .viewer-header{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border); background:#f9fbff }
+    .viewer-title{ display:flex; align-items:center; gap:10px; font-weight:700; color:#0d47a1 }
+    .viewer-actions{ display:flex; align-items:center; gap:8px }
+    .viewer-actions a, .viewer-actions button{ border:1px solid var(--border); background:#ffffff; color:var(--text); text-decoration:none; padding:8px 10px; border-radius:12px; font-size:13px; cursor:pointer }
+    .viewer-controls{ display:flex; align-items:center; gap:8px }
+    .viewer-controls select{ border:1px solid var(--border); background:#fff; color:var(--text); padding:8px 10px; border-radius:12px; font-size:13px; min-width:260px; box-shadow: var(--shadow-soft) }
+    .viewer-controls select.placeholder{ color:#8aa0b6 }
+    .viewer-controls select:focus{ outline:2px solid rgba(25,118,210,.25); border-color: var(--brand) }
+    .viewer-actions a:hover, .viewer-actions button:hover{ border-color: var(--brand) }
+    iframe{ width:100%; height: calc(100vh - 210px); border:0; background:linear-gradient(135deg, var(--bg-grad-a), var(--bg-grad-b)) }
+    @media (max-width: 980px){ iframe{ height: 70vh } }
+
+    .notice{ padding: 12px 14px; font-size: 13px; color:#0d47a1; border-top:1px dashed var(--border); background:#e3f2fd }
+    .warn{ color:#b71c1c }
+    .empty{ padding: 24px; text-align:center; color:#0d47a1 }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><i class="fas fa-eye"></i></div>
+    <h1>Indicadores Hospital do Olho</h1>
+    <p>Painel de acesso rápido para gestores</p>
+  </header>
+
+  <main class="main" role="main">
+    <aside class="side" aria-label="Lista de indicadores">
+      <h2>Indicadores</h2>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <section class="viewer" aria-live="polite">
+      <div class="viewer-header">
+        <div class="viewer-title">
+          <span id="activeTag" class="tag" style="display:none"></span>
+          <span id="activeName">Selecione um indicador</span>
+        </div>
+        <div class="viewer-controls"><select id="picker" aria-label="Selecionar indicador"></select></div>
+        <div class="viewer-actions">
+          <a id="openExternal" href="#" target="_blank" rel="noopener">Abrir em nova aba</a>
+          <button id="copyLink">Copiar link</button>
+        </div>
+      </div>
+      <iframe id="frame" title="Visualizador de indicadores" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-presentation" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="notice" id="notice" hidden>
+        <b>Aviso:</b> alguns relatórios podem bloquear exibição em iframe. Se a tela ficar vazia, use <span class="tag">Abrir em nova aba</span>.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // === Catálogo de Indicadores ===
+    const DASHBOARDS = [
+      { name: 'Chamados para TI', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/6589b28e-4ea8-487f-baa6-f85e08ee99e0/page/D4aXF' },
+      { name: 'Chamados para TI (Antigo)', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/bd689e25-4bb3-45f7-888b-7d50037be644/page/Bu0QF' },
+      { name: 'Chamados – Manutenção Predial', tag: 'Manutenção', url: 'https://lookerstudio.google.com/reporting/da643d13-0b21-4883-a711-2557dc374743/page/fCpWF?s=p37WmjEk--c' },
+      { name: 'Dashboard Call Center', tag: 'Call Center', url: 'https://lookerstudio.google.com/reporting/067fb47a-9bd6-4e05-b68a-4da1b2ac38d8/page/k1WWF?s=mBO2Z_G-N6A' },
+      { name: 'Dashboard Call Center (Antigo)', tag: 'Call Center', url: 'https://lookerstudio.google.com/reporting/b925f478-1990-4b9a-a4f2-555f6ced63de/page/ywgTF' },
+      { name: 'Gestão de Contratos (TI)', tag: 'Contratos', url: 'https://lookerstudio.google.com/reporting/756377d8-7c77-407c-8eb6-0d984fd56c7e/page/1OyUF' },
+    ];
+
+    // Converte URL padrão do Looker Studio para URL de incorporação.
+    function toEmbed(url){
+      try{
+        const u = new URL(url);
+        u.pathname = u.pathname.replace('/reporting/', '/embed/reporting/');
+        return u.toString();
+      }catch{ return url; }
+    }
+
+    // Utilidades
+    const $ = (sel) => document.querySelector(sel);
+    const listEl = $('#list');
+    const frame = $('#frame');
+    const activeName = $('#activeName');
+    const activeTag = $('#activeTag');
+    const openExternal = $('#openExternal');
+    const copyBtn = $('#copyLink');
+    const picker = document.getElementById('picker');
+    const notice = $('#notice');
+
+    if(picker) picker.addEventListener('change', ()=> {
+      const val = picker.value.trim();
+      if(val === '') return; // placeholder
+      selectDashboard(Number(val));
+    });
+
+    // Renderiza lista e/ou dropdown
+    function renderList(filter=''){
+      const q = (filter||'').trim().toLowerCase();
+
+      // Popular menu suspenso (picker) agrupado por tag, com placeholder em branco
+      if (picker) {
+        const groups = {};
+        DASHBOARDS.forEach((d,i)=>{
+          if(!q || d.name.toLowerCase().includes(q) || d.tag.toLowerCase().includes(q)){
+            (groups[d.tag] ||= []).push({i,d});
+          }
+        });
+        picker.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Selecionar indicador…';
+        placeholder.selected = true; placeholder.disabled = true; placeholder.hidden = false;
+        picker.appendChild(placeholder);
+        picker.classList.add('placeholder');
+
+        Object.keys(groups).sort().forEach(tag=>{
+          const og = document.createElement('optgroup');
+          og.label = tag;
+          groups[tag].forEach(({i,d})=>{
+            const opt = document.createElement('option');
+            opt.value = String(i);
+            opt.textContent = d.name;
+            og.appendChild(opt);
+          });
+          picker.appendChild(og);
+        });
+      }
+
+      // Se a lista lateral existir (fallback), também renderiza os cards
+      if (listEl) {
+        listEl.innerHTML = '';
+        DASHBOARDS.filter(d => !q || d.name.toLowerCase().includes(q) || d.tag.toLowerCase().includes(q))
+          .forEach((d,i)=>{
+            const btn = document.createElement('button');
+            btn.className = 'dash-btn';
+            btn.type = 'button';
+            btn.setAttribute('data-index', i);
+            btn.innerHTML = `
+              <span class="tag" aria-hidden="true">${d.tag}</span>
+              <div title="${d.name}">
+                <div class="name">${d.name}</div>
+              </div>
+            `;
+            btn.addEventListener('click', ()=> selectDashboard(i));
+            listEl.appendChild(btn);
+          });
+      }
+      highlightActive();
+    }
+
+    // Seleciona dashboard e carrega no iframe
+    function selectDashboard(index){
+      const d = DASHBOARDS[index];
+      if(!d) return;
+      const embed = toEmbed(d.url);
+      frame.src = embed;
+      activeName.textContent = d.name;
+      activeTag.textContent = d.tag; activeTag.style.display='inline-flex';
+      openExternal.href = d.url;
+      localStorage.setItem('ho.active', String(index));
+      history.replaceState(null, '', `#${slugify(d.name)}`);
+      notice.hidden = true;
+      highlightActive();
+      const timeout = setTimeout(()=>{ notice.hidden = false; }, 2500);
+      frame.addEventListener('load', ()=>{ clearTimeout(timeout); notice.hidden = true; }, { once: true });
+    }
+
+    function highlightActive(){
+      const active = localStorage.getItem('ho.active');
+      document.querySelectorAll('.dash-btn').forEach((b)=>{
+        b.setAttribute('aria-current', active == String(b.getAttribute('data-index')) ? 'page' : 'false');
+      });
+      if(picker){
+        if(active !== null){ picker.value = String(active); picker.classList.remove('placeholder'); }
+        else { picker.value = ''; picker.classList.add('placeholder'); }
+      }
+    }
+
+    copyBtn.addEventListener('click', async ()=>{
+      const idx = localStorage.getItem('ho.active');
+      const d = DASHBOARDS[Number(idx)] || null;
+      const link = d ? d.url : location.href;
+      try{ await navigator.clipboard.writeText(link); copyBtn.textContent = 'Copiado!'; }
+      catch{ copyBtn.textContent = 'Falhou 😕'; }
+      setTimeout(()=> copyBtn.textContent = 'Copiar link', 1600);
+    });
+
+    function slugify(s){
+      return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    }
+    function openFromHash(){
+      const h = location.hash.replace('#','');
+      if(!h) return false;
+      const idx = DASHBOARDS.findIndex(d=> slugify(d.name)===h);
+      if(idx>=0){ selectDashboard(idx); return true; }
+      return false;
+    }
+
+    // Inicialização
+    renderList();
+    if(!openFromHash()){
+      const stored = localStorage.getItem('ho.active');
+      if(stored !== null && DASHBOARDS[Number(stored)]){
+        selectDashboard(Number(stored));
+      } else {
+        if(picker){ picker.value = ''; picker.classList.add('placeholder'); }
+        activeName.textContent = 'Selecione um indicador';
+        activeTag.style.display='none';
+      }
+    }
+
+    // Auto-testes
+    (function selfTests(){
+      try{
+        console.assert(slugify('Áé Í') === 'ae-i', 'slugify básico falhou');
+        const e = toEmbed('https://lookerstudio.google.com/reporting/abc');
+        console.assert(e.includes('/embed/reporting/'), 'toEmbed não converteu');
+        console.assert(Array.isArray(DASHBOARDS) && DASHBOARDS.length >= 3, 'catálogo mínimo');
+      }catch(err){ console.warn('Self-tests: algo falhou', err); }
+    })();
+  </script>
+</body>
+</html>
