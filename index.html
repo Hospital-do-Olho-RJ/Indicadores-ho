@@ -3,62 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="robots" content="noindex, nofollow, nosnippet, noarchive, noimageindex, nocache" />
-  <meta name="googlebot" content="noindex, nofollow" />
-  <meta name="bingbot" content="noindex, nofollow" />
   <title>Portal de Indicadores — Hospital do Olho</title>
   <meta name="description" content="Atalho único para indicadores (Looker Studio) do Hospital do Olho." />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Anti-scraping and screenshot protection */
-    body {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: auto;
-    }
-    
-    /* Prevent context menu */
-    * {
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Hide content when dev tools are detected */
-    .dev-tools-warning {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #fff;
-      z-index: 99999;
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
-    
-    /* Screenshot protection overlay */
-    .screenshot-protection {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      z-index: 1;
-      pointer-events: none;
-      mix-blend-mode: difference;
-      opacity: 0.01;
-    }
-    
     :root{
       --bg-grad-a: #f5f7fa;
       --bg-grad-b: #e3f2fd;
@@ -114,8 +62,6 @@
     }
     .dash-btn:hover{ transform:translateY(-1px); border-color: var(--brand) }
     .dash-btn[aria-current="page"]{ background:linear-gradient(180deg, #ffffff, #f6fbff); border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--focus) inset }
-    .dash-btn:focus { outline: none !important; }
-    .dash-btn:focus-visible { outline: none !important; }
 
     .tag{ font-size:11px; padding:4px 8px; border-radius:999px; background: var(--chip-bg); border:1px solid var(--chip-stroke); color:#0d47a1 }
     .muted{ color: var(--muted); font-size:12px }
@@ -127,14 +73,12 @@
     .viewer-title{ display:flex; align-items:center; gap:10px; font-weight:700; color:#0d47a1 }
     .viewer-actions{ display:flex; align-items:center; gap:8px }
     .viewer-actions a, .viewer-actions button{ border:1px solid var(--border); background:#ffffff; color:var(--text); text-decoration:none; padding:8px 10px; border-radius:12px; font-size:13px; cursor:pointer }
-    .viewer-actions a:focus, .viewer-actions button:focus { outline: none !important; }
-    .viewer-actions a:focus-visible, .viewer-actions button:focus-visible { outline: none !important; }
     .viewer-controls{ display:flex; align-items:center; gap:8px }
     .viewer-controls select{ border:1px solid var(--border); background:#fff; color:var(--text); padding:8px 10px; border-radius:12px; font-size:13px; min-width:260px; box-shadow: var(--shadow-soft) }
     .viewer-controls select.placeholder{ color:#8aa0b6 }
     .viewer-controls select:focus{ outline:2px solid rgba(25,118,210,.25); border-color: var(--brand) }
     .viewer-actions a:hover, .viewer-actions button:hover{ border-color: var(--brand) }
-    /* Removido - agora inline no HTML */
+    iframe{ width:100%; height: calc(100vh - 210px); border:0; background:linear-gradient(135deg, var(--bg-grad-a), var(--bg-grad-b)) }
     @media (max-width: 980px){ iframe{ height: 70vh } }
 
     .notice{ padding: 12px 14px; font-size: 13px; color:#0d47a1; border-top:1px dashed var(--border); background:#e3f2fd }
@@ -143,14 +87,6 @@
   </style>
 </head>
 <body>
-  <div class="dev-tools-warning" id="devWarning">
-    <h2>⚠️ Acesso Restrito</h2>
-    <p>Esta página contém informações confidenciais.</p>
-    <p>O acesso através de ferramentas de desenvolvedor não é permitido.</p>
-  </div>
-  
-  <div class="screenshot-protection" id="screenProtection"></div>
-  
   <header>
     <div class="logo"><i class="fas fa-eye"></i></div>
     <h1>Indicadores Hospital do Olho</h1>
@@ -175,10 +111,7 @@
           <button id="copyLink">Copiar link</button>
         </div>
       </div>
-      <div id="iframe-container" style="position: relative; width: 100%; height: calc(100vh - 210px); overflow: hidden;">
-        <iframe id="frame" title="Visualizador de indicadores" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-presentation" referrerpolicy="no-referrer-when-downgrade" style="width: 100%; height: 100%; border: 0;"></iframe>
-        <div id="iframe-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 2; pointer-events: none; display: none;"></div>
-      </div>
+      <iframe id="frame" title="Visualizador de indicadores" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-presentation" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <div class="notice" id="notice" hidden>
         <b>Aviso:</b> alguns relatórios podem bloquear exibição em iframe. Se a tela ficar vazia, use <span class="tag">Abrir em nova aba</span>.
       </div>
@@ -188,9 +121,10 @@
   <script>
     // === Catálogo de Indicadores ===
     const DASHBOARDS = [
-      { name: 'Chamados para TI', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/6589b28e-4ea8-487f-baa6-f85e08ee99e0/page/D4aXF' },
-      { name: 'Chamados para TI (Antigo)', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/bd689e25-4bb3-45f7-888b-7d50037be644/page/Bu0QF' },
-      { name: 'Chamados – Manutenção Predial', tag: 'Manutenção', url: 'https://lookerstudio.google.com/reporting/da643d13-0b21-4883-a711-2557dc374743/page/fCpWF?s=p37WmjEk--c' },
+      { name: 'Chamados - TI', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/6589b28e-4ea8-487f-baa6-f85e08ee99e0/page/D4aXF' },
+      { name: 'Chamados - TI (Antigo)', tag: 'TI', url: 'https://lookerstudio.google.com/reporting/bd689e25-4bb3-45f7-888b-7d50037be644/page/Bu0QF' },
+      { name: 'Chamados – Manutenção Predial', tag: 'Manutenção', url: 'https://lookerstudio.google.com/reporting/f259d3c3-6afc-4185-b1c6-363d950e933f/page/D4aXF' },
+	  { name: 'Chamados – Engenharia Clínica', tag: 'Engenharia Clínica', url: 'https://lookerstudio.google.com/reporting/b4b1d23e-99ef-4578-9843-c7680727e78d/page/D4aXF' },
       { name: 'Dashboard Call Center', tag: 'Call Center', url: 'https://lookerstudio.google.com/reporting/067fb47a-9bd6-4e05-b68a-4da1b2ac38d8/page/k1WWF?s=mBO2Z_G-N6A' },
       { name: 'Dashboard Call Center (Antigo)', tag: 'Call Center', url: 'https://lookerstudio.google.com/reporting/b925f478-1990-4b9a-a4f2-555f6ced63de/page/ywgTF' },
       { name: 'Gestão de Contratos (TI)', tag: 'Contratos', url: 'https://lookerstudio.google.com/reporting/756377d8-7c77-407c-8eb6-0d984fd56c7e/page/1OyUF' },
@@ -270,22 +204,7 @@
                 <div class="name">${d.name}</div>
               </div>
             `;
-            // Apenas permite clique do mouse, não teclado ou automação
-            btn.addEventListener('click', (e) => {
-              if (e.isTrusted && (e.pointerType === 'mouse' || e.detail > 0)) {
-                selectDashboard(i);
-              }
-            });
-            
-            // Bloqueia ativação por teclado
-            btn.addEventListener('keydown', (e) => {
-              e.preventDefault();
-              return false;
-            });
-            
-            // Remove tabindex para tirar do tab order
-            btn.setAttribute('tabindex', '-1');
-            
+            btn.addEventListener('click', ()=> selectDashboard(i));
             listEl.appendChild(btn);
           });
       }
@@ -305,43 +224,9 @@
       history.replaceState(null, '', `#${slugify(d.name)}`);
       notice.hidden = true;
       highlightActive();
-      
-      // Aplica proteções ao iframe após carregamento
       const timeout = setTimeout(()=>{ notice.hidden = false; }, 2500);
-      frame.addEventListener('load', ()=>{ 
-        clearTimeout(timeout); 
-        notice.hidden = true;
-        applyIframeProtection();
-      }, { once: true });
+      frame.addEventListener('load', ()=>{ clearTimeout(timeout); notice.hidden = true; }, { once: true });
     }
-    
-    // Aplica proteções específicas ao iframe (versão simplificada)
-    function applyIframeProtection() {
-      // Para iframes cross-origin (como Looker Studio), não conseguimos injetar código
-      // Aplicamos apenas proteções externas que não quebram a funcionalidade
-      console.log('Iframe carregado - aplicando proteções externas');
-      
-      // Monitora apenas tentativas óbvias de automação
-      const container = document.getElementById('iframe-container');
-      let rapidClicks = 0;
-      let lastClick = 0;
-      
-      container.addEventListener('click', () => {
-        const now = Date.now();
-        if (now - lastClick < 50) { // Cliques muito rápidos
-          rapidClicks++;
-          if (rapidClicks > 5) {
-            showCopyBlockedWarning();
-            rapidClicks = 0;
-          }
-        } else {
-          rapidClicks = 0;
-        }
-        lastClick = now;
-      });
-    }
-    
-    // Função removida - estava causando problemas de visibilidade
 
     function highlightActive(){
       const active = localStorage.getItem('ho.active');
@@ -354,61 +239,14 @@
       }
     }
 
-    // Botão copiar - apenas mouse (sem usar clipboard API)
-    copyBtn.addEventListener('click', (e) => {
-      if (!e.isTrusted || (e.pointerType !== 'mouse' && e.detail === 0)) {
-        return false;
-      }
+    copyBtn.addEventListener('click', async ()=>{
       const idx = localStorage.getItem('ho.active');
       const d = DASHBOARDS[Number(idx)] || null;
       const link = d ? d.url : location.href;
-      
-      // Método alternativo sem solicitar permissões
-      const textArea = document.createElement('textarea');
-      textArea.value = link;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-9999px';
-      textArea.style.top = '0';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = originalExecCommand.call(document, 'copy');
-        if (successful) {
-          copyBtn.textContent = 'Copiado!';
-        } else {
-          copyBtn.textContent = 'Falhou 😕';
-        }
-      } catch {
-        copyBtn.textContent = 'Falhou 😕';
-      }
-      
-      document.body.removeChild(textArea);
-      setTimeout(() => copyBtn.textContent = 'Copiar link', 1600);
+      try{ await navigator.clipboard.writeText(link); copyBtn.textContent = 'Copiado!'; }
+      catch{ copyBtn.textContent = 'Falhou 😕'; }
+      setTimeout(()=> copyBtn.textContent = 'Copiar link', 1600);
     });
-    
-    copyBtn.addEventListener('keydown', (e) => {
-      e.preventDefault();
-      return false;
-    });
-    
-    copyBtn.setAttribute('tabindex', '-1');
-    
-    // Link externo - apenas mouse
-    openExternal.addEventListener('click', (e) => {
-      if (!e.isTrusted || (e.pointerType !== 'mouse' && e.detail === 0)) {
-        e.preventDefault();
-        return false;
-      }
-    });
-    
-    openExternal.addEventListener('keydown', (e) => {
-      e.preventDefault();
-      return false;
-    });
-    
-    openExternal.setAttribute('tabindex', '-1');
 
     function slugify(s){
       return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
@@ -420,258 +258,6 @@
       if(idx>=0){ selectDashboard(idx); return true; }
       return false;
     }
-
-    // === Anti-Scraping e Proteção ===
-    
-    // Detecta ferramentas de desenvolvedor
-    let devtools = {open: false};
-    const threshold = 160;
-    
-    setInterval(() => {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-      const orientation = widthThreshold ? 'vertical' : 'horizontal';
-      
-      if (!(heightThreshold && widthThreshold) &&
-          ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || widthThreshold || heightThreshold)) {
-        if (!devtools.open) {
-          devtools.open = true;
-          document.getElementById('devWarning').style.display = 'flex';
-        }
-      } else {
-        if (devtools.open) {
-          devtools.open = false;
-          document.getElementById('devWarning').style.display = 'none';
-        }
-      }
-    }, 500);
-    
-    // Detecta debug
-    (function() {
-      let devtools = false;
-      const element = new Image();
-      Object.defineProperty(element, 'id', {
-        get: function() {
-          devtools = true;
-          document.getElementById('devWarning').style.display = 'flex';
-        }
-      });
-      setInterval(() => {
-        devtools = false;
-        console.dir(element);
-      }, 1000);
-    })();
-    
-    // Previne atalhos de teclado comuns e cópia
-    document.addEventListener('keydown', function(e) {
-      // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+A, Ctrl+P, Ctrl+C, Ctrl+V, Ctrl+X
-      if (e.key === 'F12' || 
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-          (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || 
-                        e.key === 'a' || e.key === 'A' || e.key === 'p' || e.key === 'P' ||
-                        e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' ||
-                        e.key === 'x' || e.key === 'X')) ||
-          (e.metaKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' ||
-                        e.key === 'x' || e.key === 'X' || e.key === 'a' || e.key === 'A'))) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        
-        // Mostra aviso visual para tentativas de cópia
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X')) {
-          showCopyBlockedWarning();
-        }
-        
-        return false;
-      }
-    }, true);
-    
-    // Previne menu de contexto
-    document.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      return false;
-    });
-    
-    // Previne seleção de texto via mouse
-    document.addEventListener('selectstart', e => e.preventDefault());
-    
-    // Bloqueia eventos de clipboard
-    document.addEventListener('copy', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      e.clipboardData.setData('text/plain', '');
-      showCopyBlockedWarning();
-      return false;
-    }, true);
-    
-    document.addEventListener('cut', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      e.clipboardData.setData('text/plain', '');
-      showCopyBlockedWarning();
-      return false;
-    }, true);
-    
-    document.addEventListener('paste', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return false;
-    }, true);
-    
-    // Bloqueia document.execCommand (método mais compatível)
-    const originalExecCommand = document.execCommand;
-    document.execCommand = function(command) {
-      if (['copy', 'cut', 'paste', 'selectAll'].includes(command)) {
-        showCopyBlockedWarning();
-        return false;
-      }
-      return originalExecCommand.apply(this, arguments);
-    };
-    
-    // Detecta tentativas de screenshot - múltiplos métodos
-    let screenshotBlocked = false;
-    
-    // Método 1: Detecção por código de tecla
-    document.addEventListener('keydown', function(e) {
-      if (e.keyCode === 44 || e.keyCode === 42 || e.code === 'PrintScreen' || e.key === 'PrintScreen') {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        triggerScreenshotProtection();
-        return false;
-      }
-    }, true);
-    
-    // Método 2: Detecção por evento de teclado raw
-    document.addEventListener('keyup', function(e) {
-      if (e.keyCode === 44 || e.code === 'PrintScreen') {
-        triggerScreenshotProtection();
-      }
-    }, true);
-    
-    // Método 3: Intercepta clipboard para detectar screenshots
-    let clipboardTimeout;
-    document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'hidden') {
-        clearTimeout(clipboardTimeout);
-        clipboardTimeout = setTimeout(() => {
-          if (document.visibilityState === 'visible') {
-            triggerScreenshotProtection();
-          }
-        }, 100);
-      }
-    });
-    
-    // Função para aplicar proteção contra screenshot
-    function triggerScreenshotProtection() {
-      if (screenshotBlocked) return;
-      screenshotBlocked = true;
-      
-      // Oculta conteúdo imediatamente
-      const mainContent = document.querySelector('main');
-      const originalFilter = document.body.style.filter;
-      
-      document.body.style.filter = 'blur(15px) brightness(0.3)';
-      document.body.style.background = '#000';
-      
-      // Mostra mensagem de proteção
-      const warning = document.createElement('div');
-      warning.style.cssText = `
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: #ff0000; color: #fff; padding: 20px; border-radius: 10px;
-        z-index: 999999; font-size: 18px; text-align: center; font-weight: bold;
-      `;
-      warning.textContent = '⚠️ SCREENSHOT DETECTADO - CONTEÚDO PROTEGIDO';
-      document.body.appendChild(warning);
-      
-      setTimeout(() => {
-        document.body.style.filter = originalFilter;
-        document.body.style.background = '';
-        if (warning.parentNode) {
-          warning.parentNode.removeChild(warning);
-        }
-        screenshotBlocked = false;
-      }, 3000);
-    }
-    
-    // Função para mostrar aviso de cópia bloqueada
-    function showCopyBlockedWarning() {
-      const existing = document.getElementById('copyBlockedWarning');
-      if (existing) return;
-      
-      const warning = document.createElement('div');
-      warning.id = 'copyBlockedWarning';
-      warning.style.cssText = `
-        position: fixed; top: 20px; right: 20px; z-index: 999999;
-        background: #ff4444; color: white; padding: 12px 20px;
-        border-radius: 8px; font-weight: bold; font-size: 14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        animation: slideIn 0.3s ease-out;
-      `;
-      warning.innerHTML = '🚫 Cópia bloqueada - Conteúdo protegido';
-      
-      // Adiciona animação CSS
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-      `;
-      document.head.appendChild(style);
-      
-      document.body.appendChild(warning);
-      setTimeout(() => {
-        if (warning.parentNode) {
-          warning.parentNode.removeChild(warning);
-        }
-      }, 2000);
-    }
-    
-    // Detecta mudança de foco (possível screenshot)
-    let blurTimeout;
-    window.addEventListener('blur', () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = setTimeout(() => {
-        document.body.style.filter = 'blur(5px)';
-      }, 100);
-    });
-    
-    window.addEventListener('focus', () => {
-      clearTimeout(blurTimeout);
-      document.body.style.filter = 'none';
-    });
-    
-    // Obfusca URLs sensíveis nos dashboards
-    const originalDashboards = [...DASHBOARDS];
-    function obfuscateUrls() {
-      DASHBOARDS.forEach(d => {
-        if (d.originalUrl) return; // já obfuscado
-        d.originalUrl = d.url;
-        const urlParts = d.url.split('/');
-        const reportId = urlParts[urlParts.length - 2];
-        if (reportId) {
-          d.url = d.url.replace(reportId, btoa(reportId).substring(0, 8) + '...');
-        }
-      });
-    }
-    
-    function deobfuscateUrls() {
-      DASHBOARDS.forEach((d, i) => {
-        if (d.originalUrl) {
-          d.url = d.originalUrl;
-        }
-      });
-    }
-    
-    // Aplica obfuscação quando dev tools estão abertos
-    let lastDevState = false;
-    setInterval(() => {
-      if (devtools.open && !lastDevState) {
-        obfuscateUrls();
-      } else if (!devtools.open && lastDevState) {
-        deobfuscateUrls();
-      }
-      lastDevState = devtools.open;
-    }, 1000);
 
     // Inicialização
     renderList();
